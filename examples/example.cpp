@@ -78,7 +78,8 @@ void savePointsToFile(const std::string& filename,
 
 void test_min_curvature_optimizer(const double first_opt_weight = 0.5, 
                                   const double last_point_shrink = 0.5,
-                                  const bool verbose = false){
+                                  const std::string& filename = "optimized.csv",
+                                  const bool verbose = false) {
     // Initialize some example control points for reference, left, and right boundary B-splines
     Eigen::Vector2d trans(0.0, 2.0); 
     std::vector<Eigen::Vector2d> left_boundary = generateLeftBoundary(num_points_spline);  
@@ -123,7 +124,7 @@ void test_min_curvature_optimizer(const double first_opt_weight = 0.5,
         opt_points.emplace_back(point_opt);
         init_points.emplace_back(point_ref);
     }
-    savePointsToFile("optimized.csv", left_points, right_points, init_points, opt_points, init_curv, opt_curv);
+    savePointsToFile(filename, left_points, right_points, init_points, opt_points, init_curv, opt_curv);
 }
 
 
@@ -137,6 +138,7 @@ int main(int argc, char* argv[]) {
         ("num_points", po::value<std::size_t>()->default_value(20), "number of points for the spline")
         ("first_opt_weight", po::value<double>()->default_value(0.5), "weight for the first optimization")
         ("last_point_shrink", po::value<double>()->default_value(0.5), "shrink factor for the last point")
+        ("output", po::value<std::string>()->default_value("optimized.csv"), "output file name")
         ("verbose", po::value<bool>()->default_value(false), "verbose mode")
         ;
 
@@ -154,7 +156,8 @@ int main(int argc, char* argv[]) {
     double first_opt_weight = vm["first_opt_weight"].as<double>();
     double last_point_shrink = vm["last_point_shrink"].as<double>();
     bool verbose = vm["verbose"].as<bool>();
+    std::string output = vm["output"].as<std::string>();
 
-    test_min_curvature_optimizer(first_opt_weight, last_point_shrink, verbose);
+    test_min_curvature_optimizer(first_opt_weight, last_point_shrink, output, verbose);
     return 1;
 }

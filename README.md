@@ -51,10 +51,22 @@ sudo make install
 After building the project, you can execute the example with:
 
 ```sh
-./bin/min_curv_planner_qp
+./bin/example
 ```
 Ensure you are in the top directory when running the executable.
 
 You can see the program options using the flag ```--help```.
 The example uses a sinusoidal wave as initial trajectory and boundaries.
 
+## Visualization
+After running the example, the results can be visualized using the [plot_results.py](./scripts/plot_results.py) script:
+
+```sh
+./scripts/plot_results.py --path <path to output CSV file>
+```
+
+The dependencies are:
+- pandas
+- matplotlib
+- numpy
+- Fire
