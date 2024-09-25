@@ -1,0 +1,6 @@
+*.csv
+osqp/
+osqp-eigen/
+build/
+bin/
+.vscode/
