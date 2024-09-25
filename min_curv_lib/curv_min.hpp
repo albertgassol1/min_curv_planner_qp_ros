@@ -27,12 +27,15 @@ private:
     void computeHessianAndLinear();
     void computeConstraints(const double last_point_shrink);
     const Eigen::MatrixXd getBoundaryDistance() const; 
+    const Eigen::SparseMatrix<double> toSparseMatrix(const Eigen::MatrixXd& matrix) const;
+    const Eigen::MatrixXd fromSparseMatrix(const Eigen::SparseMatrix<double>& sparse_matrix) const;
     
     // Data
     std::shared_ptr<BaseCubicSpline> ref_spline_ = nullptr;
     std::shared_ptr<BaseCubicSpline> left_spline_ = nullptr;
     std::shared_ptr<BaseCubicSpline> right_spline_ = nullptr;
     Eigen::MatrixXd normal_vectors_;
+    bool verbose_ = false;
     
     // OSQP Eigen objects
     std::unique_ptr<OsqpEigen::Solver> solver_;
