@@ -36,15 +36,15 @@ sudo make install
 ## Building the Project
 
 
-    ```sh
-    git clone https://github.com/yourusername/min_curv_planner_qp.git
-    cd min_curv_planner_qp
-    mkdir build
-    mkdir bin
-    cd build
-    cmake ..
-    make
-    ```
+```sh
+git clone https://github.com/yourusername/min_curv_planner_qp.git
+cd min_curv_planner_qp
+mkdir build
+mkdir bin
+cd build
+cmake ..
+make
+```
 
 ## Executing the Planner Example
 
