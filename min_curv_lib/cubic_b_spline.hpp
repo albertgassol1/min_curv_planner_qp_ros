@@ -6,6 +6,7 @@
 namespace spline{
 class CubicBSpline : public BaseCubicSpline{
     public:
+        CubicBSpline();
         CubicBSpline(const std::vector<Eigen::Vector2d>& control_points);
         const Eigen::Vector2d evaluateSpline(const double u, const std::size_t derivative_order) const override;
         const double computeCurvature(const double u) const override;

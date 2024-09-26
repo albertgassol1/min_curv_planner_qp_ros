@@ -2,6 +2,8 @@
 
 namespace spline {
 
+    ParametricCubicSpline::ParametricCubicSpline() : BaseCubicSpline() {}
+
     ParametricCubicSpline::ParametricCubicSpline(const std::vector<Eigen::Vector2d>& control_points)
         : BaseCubicSpline(control_points) {
         initialize();

@@ -1,6 +1,9 @@
 #include "cubic_b_spline.hpp"
 
 namespace spline{
+
+CubicBSpline::CubicBSpline() : BaseCubicSpline() {}
+
 CubicBSpline::CubicBSpline(const std::vector<Eigen::Vector2d>& control_points)
     : BaseCubicSpline(control_points) {
     initialize();

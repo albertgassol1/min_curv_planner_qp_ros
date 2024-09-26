@@ -7,6 +7,7 @@ namespace spline {
     class BaseCubicSpline {
 
     public:
+        BaseCubicSpline();
         BaseCubicSpline(const std::vector<Eigen::Vector2d>& control_points);
         virtual const Eigen::Vector2d evaluateSpline(const double u, const std::size_t derivative_order) const = 0;
         virtual const double computeCurvature(const double u) const = 0;
