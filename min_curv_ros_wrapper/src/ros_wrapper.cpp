@@ -65,6 +65,7 @@ void RosWrapper::optimizeTrajectory() {
     // Re-run the optimizer to smooth out the trajectory further
     optimizer_->setUp(optimized_trajectory_, left_boundary_spline_, right_boundary_spline_, 0.5);
     optimizer_->solve(optimized_trajectory_, 0.5);
+    optimized_trajectory_ = std::shared_ptr<spline::CubicBSpline>(optimized_trajectory_->getControlPoints());
 
     // Now we have the optimized trajectory, let's publish the result
     std::vector<Eigen::Vector2d> opt_points;

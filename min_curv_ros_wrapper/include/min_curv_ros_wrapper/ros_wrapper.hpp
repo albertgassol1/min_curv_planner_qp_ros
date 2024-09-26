@@ -9,6 +9,8 @@
 #include <min_curv_ros_wrapper/Paths.h> 
 
 #include "base_cubic_spline.hpp"
+#include "cubic_spline.hpp"
+#include "cubic_b_spline.hpp"
 #include "curv_min.hpp"
 
 namespace min_curv_ros_wrapper {
