@@ -3,6 +3,8 @@
 namespace spline
 {
 
+BaseCubicSpline::BaseCubicSpline() : degree_(3){}
+
 BaseCubicSpline::BaseCubicSpline(const std::vector<Eigen::Vector2d>& control_points)
     : control_points_(control_points), degree_(3){} 
 

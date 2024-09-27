@@ -11,34 +11,43 @@ namespace optimization {
 
 class MinCurvatureOptimizer {
 public:
-    MinCurvatureOptimizer(const bool verbose = false);
+
+    MinCurvatureOptimizer(std::unique_ptr<MinCurvatureParams> params = nullptr);
     void setUp(const std::shared_ptr<BaseCubicSpline>& ref_spline,
                const std::shared_ptr<BaseCubicSpline>& left_spline,
                const std::shared_ptr<BaseCubicSpline>& right_spline,
                const double last_point_shrink = 0.5);
 
-    void solve(std::shared_ptr<BaseCubicSpline>& opt_traj, const double normal_weight = 1.0
-    
-    
-    );
+    void solve(std::shared_ptr<BaseCubicSpline>& opt_traj, const double normal_weight = 1.0);
 
 private:
     void setupQP(const double last_point_shrink);
     void computeHessianAndLinear();
     void computeConstraints(const double last_point_shrink);
     const Eigen::MatrixXd getBoundaryDistance() const; 
+    void setSystemMatrixInverse();
     
     // Data
     std::shared_ptr<BaseCubicSpline> ref_spline_ = nullptr;
     std::shared_ptr<BaseCubicSpline> left_spline_ = nullptr;
     std::shared_ptr<BaseCubicSpline> right_spline_ = nullptr;
     Eigen::MatrixXd normal_vectors_;
+
+    // Parameters
+    struct MinCurvatureParams
+    {
+        bool verbose = false;
+        bool constant_system_matrix = false;
+        std::size_t system_matrix_size = 0;
+    };
+    std::unique_ptr<MinCurvatureParams> params_;
     
     // OSQP Eigen objects
     std::unique_ptr<OsqpEigen::Solver> solver_;
     Eigen::MatrixXd H_;  // Quadratic hessin matrix
     Eigen::VectorXd c_;              // Linear cost vector
     Eigen::MatrixXd A_;  // Constraint matrix
+    Eigen::MatrixXd system_inverse_;  // Inverse of the system matrix
     Eigen::VectorXd lower_bound_;     // Lower bound for constraints
     Eigen::VectorXd upper_bound_;     // Upper bound for constraints
 };

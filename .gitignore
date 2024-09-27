@@ -4,3 +4,4 @@ osqp-eigen/
 build/
 bin/
 .vscode/
+.devcontainer/

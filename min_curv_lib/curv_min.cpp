@@ -3,12 +3,20 @@
 namespace spline {
 namespace optimization {
 
-MinCurvatureOptimizer::MinCurvatureOptimizer(const bool verbose) {
+MinCurvatureOptimizer::MinCurvatureOptimizer(std::unique_ptr<MinCurvatureParams> params) {
     // Initialize OSQP solver
+    if (params) {
+        params_ = std::move(params);
+    } else {
+        params_ = std::make_unique<MinCurvatureParams>();
+    }
     solver_ = std::make_unique<OsqpEigen::Solver>();
-    solver_->settings()->setVerbosity(verbose);
+    solver_->settings()->setVerbosity(params_->verbose);
     solver_->settings()->setMaxIteration(100); 
     solver_->settings()->setWarmStart(true);
+    if (params_->constant_system_matrix) {
+        setSystemMatrixInverse();
+    }
 }
 
 void MinCurvatureOptimizer::setUp(const std::shared_ptr<BaseCubicSpline>& ref_spline,
@@ -20,6 +28,10 @@ void MinCurvatureOptimizer::setUp(const std::shared_ptr<BaseCubicSpline>& ref_sp
     right_spline_ = right_spline;
     
     setupQP(last_point_shrink);
+}
+
+void MinCurvatureOptimizer::setSystemMatrixInverse(const std::size_t size) {
+    system_inverse_ = 
 }
 
 void MinCurvatureOptimizer::computeHessianAndLinear() {
