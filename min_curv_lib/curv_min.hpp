@@ -26,6 +26,8 @@ private:
     void computeConstraints(const double last_point_shrink);
     const Eigen::MatrixXd getBoundaryDistance() const; 
     void setSystemMatrixInverse();
+    const Eigen::SparseMatrix<double> toSparseMatrix(const Eigen::MatrixXd& matrix) const;
+    const Eigen::MatrixXd fromSparseMatrix(const Eigen::SparseMatrix<double>& sparse_matrix) const;
     
     // Data
     std::shared_ptr<BaseCubicSpline> ref_spline_ = nullptr;

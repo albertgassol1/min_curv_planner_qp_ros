@@ -1,3 +1,5 @@
+#include <chrono>
+#include <iostream>
 #include "curv_min.hpp"
 
 namespace spline {
@@ -26,8 +28,14 @@ void MinCurvatureOptimizer::setUp(const std::shared_ptr<BaseCubicSpline>& ref_sp
     ref_spline_ = ref_spline;
     left_spline_ = left_spline;
     right_spline_ = right_spline;
-    
+    auto start = std::chrono::high_resolution_clock::now();
     setupQP(last_point_shrink);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    if (verbose_) {
+        std::cout << "Setup time: " << duration.count() << "ms\n";
+    }
+
 }
 
 void MinCurvatureOptimizer::setSystemMatrixInverse(const std::size_t size) {
@@ -48,15 +56,23 @@ void MinCurvatureOptimizer::computeHessianAndLinear() {
 
     // Calculate A matrix (later updated in for loop)
     const std::size_t size_A = 4 * num_control_points;
-    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size_A, size_A);
-    A.block<5, 7>(0, 0) <<  1.,  0.,  0.,  0.,  0.,  0.,  0.,
-                            0.,  0.,  2.,  0.,  0.,  0.,  0.,
-                            1.,  1.,  1.,  1.,  0.,  0.,  0.,
-                            0.,  1.,  2.,  3.,  0., -1.,  0.,
-                            0.,  0.,  1.,  3.,  0.,  0., -1.;
-    A(size_A - 3, size_A - 4) = 1;
-    A(size_A - 2, size_A - 2) = 2;
-    A(size_A - 1, size_A - 1) = 1;
+    Eigen::SparseMatrix<double> A_sparse(size_A, size_A);
+    A_sparse.insert(0, 0) = 1.;
+    A_sparse.insert(1, 2) = 2.;
+    A_sparse.insert(2, 0) = 1.;
+    A_sparse.insert(2, 1) = 1.;
+    A_sparse.insert(2, 2) = 1.;
+    A_sparse.insert(2, 3) = 1.;
+    A_sparse.insert(3, 1) = 1.;
+    A_sparse.insert(3, 2) = 2.;
+    A_sparse.insert(3, 3) = 3.;
+    A_sparse.insert(3, 5) = -1.;
+    A_sparse.insert(4, 2) = 1.;
+    A_sparse.insert(4, 3) = 3.;
+    A_sparse.insert(4, 6) = -1.;
+    A_sparse.insert(size_A - 3, size_A - 4) = 1;
+    A_sparse.insert(size_A - 2, size_A - 2) = 2;
+    A_sparse.insert(size_A - 1, size_A - 1) = 1;
 
     // Compute P_xx, P_xy, P_yy
     Eigen::VectorXd square_normals = (normal_vectors_.col(0).array().square() + normal_vectors_.col(1).array().square());
@@ -92,10 +108,18 @@ void MinCurvatureOptimizer::computeHessianAndLinear() {
         M_y(4 * i + 1, i) = normal_vectors_(i, 1);
         M_y(4 * i + 2, i + 1) = normal_vectors_(i + 1, 1);
         A_ex(i, 4 * i + 2) = 1;
-        A.block<4, 7>(4*i+1, 4*i) << 1.,  0.,  0.,  0.,  0.,  0.,  0.,
-                                     1.,  1.,  1.,  1.,  0.,  0.,  0.,
-                                     0.,  1.,  2.,  3.,  0., -1.,  0.,
-                                     0.,  0.,  1.,  3.,  0.,  0., -1.;
+        A_sparse.insert(4*i+1, 4*i) = 1.;
+        A_sparse.insert(4*i+2, 4*i) = 1.;
+        A_sparse.insert(4*i+2, 4*i+1) = 1.;
+        A_sparse.insert(4*i+2, 4*i+2) = 1.;
+        A_sparse.insert(4*i+2, 4*i+3) = 1.;
+        A_sparse.insert(4*i+3, 4*i+1) = 1.;
+        A_sparse.insert(4*i+3, 4*i+2) = 2.;
+        A_sparse.insert(4*i+3, 4*i+3) = 3.;
+        A_sparse.insert(4*i+3, 4*i+5) = -1.;
+        A_sparse.insert(4*i+4, 4*i+2) = 1.;
+        A_sparse.insert(4*i+4, 4*i+3) = 3.;
+        A_sparse.insert(4*i+4, 4*i+6) = -1.;
     }
     q_x(size_A - 3) = control_points[num_control_points - 1].x();
     q_y(size_A - 3) = control_points[num_control_points - 1].y();
@@ -104,7 +128,16 @@ void MinCurvatureOptimizer::computeHessianAndLinear() {
     A_ex(num_control_points - 1, size_A - 2) = 1;
 
     // Compute quadratic (hessian) and linear (gradient) terms
-    Eigen::MatrixXd T_c = 2 * A_ex * A.inverse();
+    // Eigen::SparseMatrix<double> A_sparse = toSparseMatrix(A);
+    Eigen::SparseLU<Eigen::SparseMatrix<double>> solver;
+    solver.analyzePattern(A_sparse);  // Analyze the sparsity pattern
+    solver.factorize(A_sparse);       // Factorize the matrix
+    // Now solve for the inverse
+    Eigen::SparseMatrix<double> identity(size_A, size_A);
+    identity.setIdentity();  // Create an identity matrix of size NxN
+    // Solve for the inverse by treating it as a linear system
+    Eigen::SparseMatrix<double> A_inv_sparse = solver.solve(identity);
+    Eigen::MatrixXd T_c = 2 * A_ex * fromSparseMatrix(A_inv_sparse);
     Eigen::MatrixXd T_nx = T_c * M_x;
     Eigen::MatrixXd T_ny = T_c * M_y;
     Eigen::MatrixXd tmp = T_nx.adjoint() * P_xx * T_nx + T_ny.adjoint() * P_xy * T_nx + T_ny.adjoint() * P_yy * T_ny;
@@ -149,34 +182,43 @@ void MinCurvatureOptimizer::setupQP(const double last_point_shrink) {
     solver_->data()->clearLinearConstraintsMatrix();
     computeHessianAndLinear();
     computeConstraints(last_point_shrink);
-
-    // Lambda function to convert Eigen::MatrixXd to sparse matrix
-    auto toSparse = [](const Eigen::MatrixXd& matrix) {
-        Eigen::SparseMatrix<double> sparse(matrix.rows(), matrix.cols());
-        for (int i = 0; i < matrix.outerSize(); ++i) {
-            for (Eigen::MatrixXd::InnerIterator it(matrix, i); it; ++it) {
-                sparse.insert(it.row(), it.col()) = it.value();
-            }
-        }
-        sparse.makeCompressed();
-        return sparse;
-    };
     
     // Configure OSQP solver
     std::size_t num_control_points = ref_spline_->size();
     solver_->data()->setNumberOfVariables(num_control_points);
     solver_->data()->setNumberOfConstraints(num_control_points);
-    solver_->data()->setHessianMatrix(toSparse(H_));
+    solver_->data()->setHessianMatrix(toSparseMatrix(H_));
     solver_->data()->setGradient(c_);
-    solver_->data()->setLinearConstraintsMatrix(toSparse(A_));
+    solver_->data()->setLinearConstraintsMatrix(toSparseMatrix(A_));
     solver_->data()->setLowerBound(lower_bound_);
     solver_->data()->setUpperBound(upper_bound_);
 }
 
+const Eigen::SparseMatrix<double> MinCurvatureOptimizer::toSparseMatrix(const Eigen::MatrixXd& matrix) const {
+    Eigen::SparseMatrix<double> sparse_matrix(matrix.rows(), matrix.cols());
+    for (int i = 0; i < matrix.outerSize(); ++i) {
+        for (Eigen::MatrixXd::InnerIterator it(matrix, i); it; ++it) {
+            sparse_matrix.insert(it.row(), it.col()) = it.value();
+        }
+    }
+    sparse_matrix.makeCompressed();
+    return sparse_matrix;
+}
+
+const Eigen::MatrixXd MinCurvatureOptimizer::fromSparseMatrix(const Eigen::SparseMatrix<double>& sparse_matrix) const {
+    return Eigen::MatrixXd(sparse_matrix);
+}
+
 void MinCurvatureOptimizer::solve(std::shared_ptr<BaseCubicSpline>& opt_traj, const double normal_weight) {
     // Solve the QP problem
+    auto start = std::chrono::high_resolution_clock::now();
     solver_->initSolver();
     solver_->solveProblem();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    if (verbose_) {
+        std::cout << "Solving time: " << duration.count() << "us\n";
+    }
     
     // Retrieve the solution (optimized control points)
     Eigen::VectorXd solution = normal_weight * solver_->getSolution();
