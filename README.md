@@ -36,7 +36,7 @@ make
 sudo make install
 ```
 
-## Install CMake 3.18 on ubuntu 20.04
+### Install CMake 3.18 on ubuntu 20.04
 ```sh
 sudo apt update && apt install -y wget
 wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz
@@ -47,7 +47,7 @@ make
 sudo make install
 ```
 
-## Building the Project
+### Building the Project
 
 ```sh
 mkdir -p min_curv_planner_ws/src
@@ -60,7 +60,7 @@ catkin build
 source devel/setup.bash
 ```
 
-## Executing the ROS wrapper
+### Executing the ROS wrapper
 
 The ros wrapper can be launched with:
 
@@ -71,7 +71,7 @@ roslaunch min_curv_ros_wrapper min_curv.launch
 Some parameters can be set in [./min_curv_ros_wrapper/config/params.yaml](./min_curv_ros_wrapper/config/params.yaml).
 
 
-## Example
+### Example
 
 After launching the ros_wrapper, you can visualize how the library works by launching a python node that published pre-defined boundaries. To do so, run:
 ```sh
@@ -80,7 +80,7 @@ roslaunch roslaunch boundary_publisher_example publish_boundary.launch
 This will launch the example and an rviz session where you can visualize the results.
 
 
-## Docker
+### Docker
 
 A dockerfile is provided to try the wrapper without having to install everything on your system.
 
