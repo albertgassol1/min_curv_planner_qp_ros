@@ -93,7 +93,12 @@ void test_min_curvature_optimizer(const double first_opt_weight = 0.5,
     std::shared_ptr<spline::BaseCubicSpline> right_spline = std::make_shared<spline::ParametricCubicSpline>(right_boundary);
     
     // Create and solve optimizer
-    std::unique_ptr<spline::optimization::MinCurvatureOptimizer> optimizer = std::make_unique<spline::optimization::MinCurvatureOptimizer>(verbose);
+    std::unique_ptr<spline::optimization::MinCurvatureParams> params = std::make_unique<spline::optimization::MinCurvatureParams>(verbose, 
+                                                                                                                                  true, 
+                                                                                                                                  ref_points.size(),
+                                                                                                                                  100,
+                                                                                                                                  true);
+    std::unique_ptr<spline::optimization::MinCurvatureOptimizer> optimizer = std::make_unique<spline::optimization::MinCurvatureOptimizer>(std::move(params));
     std::shared_ptr<spline::BaseCubicSpline> opt_traj = std::make_shared<spline::ParametricCubicSpline>(ref_points);
     // Solve twice to get a smoother trajectory
     // Compute solving time in milliseconds
