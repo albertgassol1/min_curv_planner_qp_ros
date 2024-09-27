@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <fstream>
 #include <vector>
 #include <memory>
@@ -92,13 +93,23 @@ void test_min_curvature_optimizer(const double first_opt_weight = 0.5,
     std::shared_ptr<spline::BaseCubicSpline> right_spline = std::make_shared<spline::ParametricCubicSpline>(right_boundary);
     
     // Create and solve optimizer
-    std::unique_ptr<spline::optimization::MinCurvatureOptimizer> optimizer = std::make_unique<spline::optimization::MinCurvatureOptimizer>(verbose);
+    std::unique_ptr<spline::optimization::MinCurvatureParams> params = std::make_unique<spline::optimization::MinCurvatureParams>(verbose, 
+                                                                                                                                  true, 
+                                                                                                                                  ref_points.size(),
+                                                                                                                                  100,
+                                                                                                                                  true);
+    std::unique_ptr<spline::optimization::MinCurvatureOptimizer> optimizer = std::make_unique<spline::optimization::MinCurvatureOptimizer>(std::move(params));
     std::shared_ptr<spline::BaseCubicSpline> opt_traj = std::make_shared<spline::ParametricCubicSpline>(ref_points);
     // Solve twice to get a smoother trajectory
+    // Compute solving time in milliseconds
+    auto start_solver = std::chrono::high_resolution_clock::now();
     optimizer->setUp(ref_spline, left_spline, right_spline, last_point_shrink);
     optimizer->solve(opt_traj, first_opt_weight);
     optimizer->setUp(opt_traj, left_spline, right_spline, last_point_shrink);
     optimizer->solve(opt_traj, 1.0 - first_opt_weight);
+    auto end_solver = std::chrono::high_resolution_clock::now();
+    auto duration_solver = std::chrono::duration_cast<std::chrono::milliseconds>(end_solver - start_solver);
+    std::cout << "Solving time: " << duration_solver.count() << "ms\n";
     opt_traj = std::make_shared<spline::CubicBSpline>(opt_traj->getControlPoints());
     ref_spline = std::make_shared<spline::CubicBSpline>(ref_spline->getControlPoints());
 
@@ -157,7 +168,11 @@ int main(int argc, char* argv[]) {
     double last_point_shrink = vm["last_point_shrink"].as<double>();
     bool verbose = vm["verbose"].as<bool>();
     std::string output = vm["output"].as<std::string>();
-
+    // Compute time
+    auto start = std::chrono::high_resolution_clock::now();
     test_min_curvature_optimizer(first_opt_weight, last_point_shrink, output, verbose);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Total time: " << duration.count() << "ms\n";
     return 1;
 }

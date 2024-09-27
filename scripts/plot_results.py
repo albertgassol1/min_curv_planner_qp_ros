@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
+import matplotlib
 import pandas as pd
 import numpy as np
 import fire
 from pathlib import Path
-
+matplotlib.use('TkAgg')
 
 def plot_result(path: Path):
     df_opt = pd.read_csv(path)

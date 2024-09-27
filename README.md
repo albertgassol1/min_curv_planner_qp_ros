@@ -70,3 +70,12 @@ The dependencies are:
 - matplotlib
 - numpy
 - Fire
+
+## Docker
+
+The example can be run in docker. Build it and run it:
+
+```sh
+docker build -t min_curv .
+docker run -i -t -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix min_curv /bin/bash
+```
