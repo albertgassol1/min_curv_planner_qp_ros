@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
-#include "curv_min.hpp"
+
+#include "min_curv_lib/curv_min.hpp"
 
 namespace spline {
 namespace optimization {
@@ -30,13 +31,15 @@ void MinCurvatureOptimizer::initSolver() {
     solver_->settings()->setWarmStart(params_->warm_start);
 }
 
-void MinCurvatureOptimizer::setUp(const std::shared_ptr<BaseCubicSpline>& ref_spline,
-                                  const std::shared_ptr<BaseCubicSpline>& left_spline,
-                                  const std::shared_ptr<BaseCubicSpline>& right_spline,
-                                  const double last_point_shrink) {
+void MinCurvatureOptimizer::setSplines(const std::shared_ptr<BaseCubicSpline>& ref_spline,
+                                       const std::shared_ptr<BaseCubicSpline>& left_spline,
+                                       const std::shared_ptr<BaseCubicSpline>& right_spline) {
     ref_spline_ = ref_spline;
     left_spline_ = left_spline;
     right_spline_ = right_spline;
+}
+
+void MinCurvatureOptimizer::setUp(const double last_point_shrink) {
     auto start = std::chrono::high_resolution_clock::now();
     setupQP(last_point_shrink);
     auto end = std::chrono::high_resolution_clock::now();

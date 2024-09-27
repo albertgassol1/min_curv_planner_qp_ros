@@ -1,10 +1,11 @@
 #pragma once
 
-#include "base_cubic_spline.hpp"
 #include <OsqpEigen/OsqpEigen.h>
 #include <vector>
 #include <memory>
 #include <Eigen/Dense>
+
+#include "min_curv_lib/base_cubic_spline.hpp"
 
 namespace spline {
 namespace optimization {
@@ -32,10 +33,10 @@ class MinCurvatureOptimizer {
 public:
     MinCurvatureOptimizer();
     MinCurvatureOptimizer(std::unique_ptr<MinCurvatureParams> params);
-    void setUp(const std::shared_ptr<BaseCubicSpline>& ref_spline,
-               const std::shared_ptr<BaseCubicSpline>& left_spline,
-               const std::shared_ptr<BaseCubicSpline>& right_spline,
-               const double last_point_shrink = 0.5);
+    void setSplines(const std::shared_ptr<BaseCubicSpline>& ref_spline,
+                    const std::shared_ptr<BaseCubicSpline>& left_spline,
+                    const std::shared_ptr<BaseCubicSpline>& right_spline);
+    void setUp(const double last_point_shrink = 0.5);
 
     void solve(std::shared_ptr<BaseCubicSpline>& opt_traj, const double normal_weight = 1.0);
 

@@ -1,4 +1,4 @@
-#include "cubic_b_spline.hpp"
+#include "min_curv_lib/cubic_b_spline.hpp"
 
 namespace spline{
 
@@ -87,7 +87,7 @@ const Eigen::Vector2d CubicBSpline::evaluateSpline(const double u, const std::si
     
     Eigen::Vector2d result(0.0, 0.0);
     
-    for (int i = 0; i <= degree_; ++i) {
+    for (std::size_t i = 0; i <= degree_; ++i) {
         double coeff = (derivative_order == 0) ? basisFunction(span - degree_ + i, degree_, u) :
                         basisFunctionDerivative(span - degree_ + i, degree_, u, derivative_order);
         result += coeff * control_points_[span - degree_ + i];

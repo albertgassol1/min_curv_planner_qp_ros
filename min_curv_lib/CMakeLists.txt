@@ -1,31 +1,31 @@
+cmake_minimum_required(VERSION 3.0.2)
 # Set the library name
 project(min_curv_lib)
 
-find_package(Eigen3 3.3 REQUIRED)
-find_package(OsqpEigen REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIRS})
-include_directories(${OsqpEigen_INCLUDE_DIRS})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+add_definitions(-Wall -Werror)
 
-# Include the headers (public headers)
-set(LIBRARY_PUBLIC_HEADERS base_cubic_spline.hpp 
-                           cubic_b_spline.hpp
-                           cubic_spline.hpp
-                           curv_min.hpp
-                           )
+set(CMAKE_BUILD_TYPE Release)
 
-# Create a library target with the source files A.cpp and B.cpp
-add_library(min_curv_lib STATIC base_cubic_spline.cpp
-                                cubic_b_spline.cpp
-                                cubic_spline.cpp
-                                curv_min.cpp
-                                )
+find_package (Eigen3 3.3 REQUIRED)
+find_package(catkin_simple REQUIRED)
+catkin_simple(ALL_DEPS_REQUIRED)
 
-# Link the library with Eigen and OsqpEigen
-target_link_libraries(min_curv_lib Eigen3::Eigen OsqpEigen::OsqpEigen)
+include_directories(include
+                    /usr/local/include/osqp/
+                    ${catkin_INCLUDE_DIRS})
 
-# Specify the include directories that this library exposes to the user
-target_include_directories(min_curv_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+                    
+cs_add_library(${PROJECT_NAME} src/base_cubic_spline.cpp 
+                               src/cubic_b_spline.cpp
+                               src/cubic_spline.cpp
+                               src/curv_min.cpp
+)
 
-# Install the library and the headers
-install(TARGETS min_curv_lib DESTINATION lib)
-install(FILES ${LIBRARY_PUBLIC_HEADERS} DESTINATION include)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES}
+                                      osqp::osqp
+                                      OsqpEigen::OsqpEigen
+                                      Eigen3::Eigen)
+
+cs_export()

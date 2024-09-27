@@ -13,6 +13,8 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 ## ADD ANY CUSTOM SETUP BELOW ##
 ################################
 
+WORKDIR /workspace
+
 # Install cmake 3.18
 RUN apt update && apt install -y wget && \
     wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz && \
@@ -22,27 +24,27 @@ RUN apt update && apt install -y wget && \
     make && \
     make install
 
+# Link Eigen3
+RUN cd /usr/include && ln -s eigen3/Eigen Eigen && ln -s eigen3/unsupported unsupported
 
-# Install osqp and osqp-eigen
-RUN mkdir -p /root/third_party && cd /root/third_party && \
-    git clone https://github.com/oxfordcontrol/osqp && \
-    cd osqp && mkdir build && cd build && \
+
+# Install osqp, osqp-eigen and catkin_simple
+RUN mkdir -p /workspace/third_party && cd /workspace/third_party && \
+    git clone https://github.com/oxfordcontrol/osqp && cd osqp &&\
+    git checkout release-0.6.3 && \
+    git submodule update --init --recursive && \
+    mkdir build && cd build && \
     cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release && \
-    make && sudo make install && \
-    cd /root/third_party && \ 
+    make && make install && \
+    cd /workspace/third_party && \ 
     git clone https://github.com/robotology/osqp-eigen && \
     cd osqp-eigen && mkdir build && cd build && \
     cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release && \
-    make && sudo make install
-
+    make && make install
 
 # Install pip and python packages
 RUN apt update && apt install -y python3-pip && \
-    pip3 install 'numpy==1.24.4' matplotlib pandas fire
-
+    pip3 install catkin_tools 'numpy==1.24.4' matplotlib pandas fire scipy
 
 # Set the working directory
-WORKDIR /root
-
-# Copy the files
-COPY . .
+RUN mkdir -p /workspace/min_curv_planner_ws/src

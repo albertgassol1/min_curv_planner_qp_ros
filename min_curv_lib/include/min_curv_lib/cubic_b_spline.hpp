@@ -1,9 +1,13 @@
 # pragma once
+
 #include <vector>
 #include <fstream>
 #include <Eigen/Dense>
-#include "base_cubic_spline.hpp"
+
+#include "min_curv_lib/base_cubic_spline.hpp"
+
 namespace spline{
+    
 class CubicBSpline : public BaseCubicSpline{
     public:
         CubicBSpline();
