@@ -106,3 +106,7 @@ cd min_curv_planner_ws
 source devel/setup.bash
 roslaunch boundary_publisher_example publish_boundary.launch
 ```
+
+### Aknowledgment
+
+The project utilizes the `nanoflann` library (https://github.com/jlblancoc/nanoflann?tab=License-1-ov-file#readme), which is a C++ header-only library for Nearest Neighbor (NN) search with KD-trees. This library is particularly useful for efficiently solving nearest neighbor queries, which is a common requirement in path planning algorithms.
