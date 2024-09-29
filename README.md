@@ -2,6 +2,9 @@
 
 This project is a Quadratic Programming (QP) based minimum curvature path planner with a ROS wrapper. Below are the instructions to build and execute an example of how to use the library.
 
+![](./assets/min_curv.gif)
+
+
 ## Prerequisites
 
 Ensure you have the following dependencies installed:

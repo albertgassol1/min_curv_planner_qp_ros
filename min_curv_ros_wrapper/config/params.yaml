@@ -18,7 +18,7 @@ optimizer:
   warm_start: true
   num_points_evaluate: 100
   num_nearest: 10
-  shrink: 0.7
+  shrink: 0.2
   kdtree_leafs: 10
 
 # Frame names
