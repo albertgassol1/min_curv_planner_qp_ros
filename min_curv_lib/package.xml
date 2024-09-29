@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>min_curv_lib</name>
+  <version>0.0.1</version>
+  <description>Min curvature with splines package</description>
+  <maintainer email="albertgassol1@gmail.com">albert</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+  <depend>osqp</depend>
+  <depend>OsqpEigen</depend>
+</package>

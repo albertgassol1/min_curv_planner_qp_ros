@@ -1,0 +1,27 @@
+# Topic names
+topics:
+  boundaries: "/initial/boundaries"
+  optimized_path: "/optimized/centerline"
+  left_boundary: "/optimized/left_boundary"
+  right_boundary: "/optimized/right_boundary"
+  initial_curvature: "/initial/curvature"
+  optimized_curvature: "/optimized/curvature"
+
+# Optimizer parameters
+optimizer:
+  weight: 0.5
+  last_point_shrink: 0.6
+  verbose: false
+  constant_system_matrix: true
+  num_control_points: 20
+  max_num_iterations: 100
+  warm_start: true
+  num_points_evaluate: 100
+  num_nearest: 10
+  shrink: 0.7
+  kdtree_leafs: 10
+
+# Frame names
+frames:
+  robot: "base_link"
+  world: "world"

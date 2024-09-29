@@ -1,0 +1,7 @@
+<launch>
+    <!-- Load parameters from YAML file -->
+    <rosparam file="$(find min_curv_ros_wrapper)/config/params.yaml" command="load" />
+
+    <!-- Launch the ROS node -->
+    <node name="min_curv_ros_wrapper_node" pkg="min_curv_ros_wrapper" type="min_curv_ros_wrapper_exec" output="screen" />
+</launch>

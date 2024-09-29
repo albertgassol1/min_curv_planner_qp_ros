@@ -1,4 +1,4 @@
-#include "base_cubic_spline.hpp"
+#include "min_curv_lib/base_cubic_spline.hpp"
 
 namespace spline
 {

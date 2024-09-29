@@ -1,10 +1,13 @@
 #pragma once
 
-#include "base_cubic_spline.hpp"
 #include <OsqpEigen/OsqpEigen.h>
 #include <vector>
 #include <memory>
 #include <Eigen/Dense>
+
+#include "min_curv_lib/nanoflann.hpp"
+#include "min_curv_lib/kd_tree_adapter.hpp"
+#include "min_curv_lib/base_cubic_spline.hpp"
 
 namespace spline {
 namespace optimization {
@@ -13,29 +16,38 @@ struct MinCurvatureParams
 {
     bool verbose = false;
     bool constant_system_matrix = false;
+    bool warm_start = true;
     std::size_t num_control_points = 0;
     std::size_t max_num_iterations = 100;
-    bool warm_start = true;
+    std::size_t num_points_evaluate = 100;
+    std::size_t num_nearest = 3;
+    std::size_t kdtree_leafs = 10;
+    double shrink = 0.3;
 
     MinCurvatureParams() = default;
     MinCurvatureParams(bool verbose, 
                        bool constant_system_matrix, 
+                       bool warm_start,
                        std::size_t num_control_points, 
-                       std::size_t max_num_iterations, 
-                       bool warm_start)
+                       std::size_t max_num_iterations,
+                       std::size_t num_points_evaluate,
+                       std::size_t num_nearest,
+                       std::size_t kdtree_leafs,
+                       double shrink)
         : verbose(verbose), constant_system_matrix(constant_system_matrix), 
-            num_control_points(num_control_points), max_num_iterations(max_num_iterations), 
-            warm_start(warm_start) {}
+          warm_start(warm_start), num_control_points(num_control_points), 
+          max_num_iterations(max_num_iterations), num_points_evaluate(num_points_evaluate), 
+          num_nearest(num_nearest), kdtree_leafs(kdtree_leafs), shrink(shrink) {}
 };
 
 class MinCurvatureOptimizer {
 public:
     MinCurvatureOptimizer();
     MinCurvatureOptimizer(std::unique_ptr<MinCurvatureParams> params);
-    void setUp(const std::shared_ptr<BaseCubicSpline>& ref_spline,
-               const std::shared_ptr<BaseCubicSpline>& left_spline,
-               const std::shared_ptr<BaseCubicSpline>& right_spline,
-               const double last_point_shrink = 0.5);
+    void setSplines(const std::shared_ptr<BaseCubicSpline>& ref_spline,
+                    const std::shared_ptr<BaseCubicSpline>& left_spline,
+                    const std::shared_ptr<BaseCubicSpline>& right_spline);
+    void setUp(const double last_point_shrink = 0.5);
 
     void solve(std::shared_ptr<BaseCubicSpline>& opt_traj, const double normal_weight = 1.0);
 

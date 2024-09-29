@@ -1,8 +1,10 @@
 #pragma once
+
 #include <vector>
 #include <stdexcept>
 #include <Eigen/Dense>
-#include "base_cubic_spline.hpp"
+
+#include "min_curv_lib/base_cubic_spline.hpp"
 
 namespace spline{
 

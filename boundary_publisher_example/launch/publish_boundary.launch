@@ -1,0 +1,6 @@
+<launch>
+    <rosparam file="$(find min_curv_ros_wrapper)/config/params.yaml" command="load" />
+    <node name="boundary_publisher_node" pkg="boundary_publisher_example" type="boundary_publisher_example.py" output="screen" />
+    <!-- Launch rviz with specific configuration -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find boundary_publisher_example)/rviz/boundaries.rviz" />
+</launch>
