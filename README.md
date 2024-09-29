@@ -52,7 +52,7 @@ sudo make install
 ```sh
 mkdir -p min_curv_planner_ws/src
 cd min_curv_planner_ws/src
-git clone https://github.com/albertgassol1/min_curv_planner_qp.git
+git clone https://github.com/albertgassol1/min_curv_planner_qp_ros.git
 git submodule update --init --recursive
 cd ..
 catkin init
@@ -85,10 +85,10 @@ This will launch the example and an rviz session where you can visualize the res
 A dockerfile is provided to try the wrapper without having to install everything on your system.
 
 ```sh
-git clone https://github.com/albertgassol1/min_curv_planner_qp.git
+git clone https://github.com/albertgassol1/min_curv_planner_qp_ros.git
 git submodule update --init --recursive
 docker build -t min_curv_ros .
-docker run -i -t --name min_curv_ros -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ./:/workspace/min_curv_planner_ws/src/min_curv_planner_qp min_curv_ros /bin/bash
+docker run -i -t --name min_curv_ros -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ./:/workspace/min_curv_planner_ws/src/min_curv_planner_qp_ros min_curv_ros /bin/bash
 ```
 
 Inside the docker container run:
