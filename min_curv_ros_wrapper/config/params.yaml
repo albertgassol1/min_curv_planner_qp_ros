@@ -16,6 +16,10 @@ optimizer:
   num_control_points: 20
   max_num_iterations: 100
   warm_start: true
+  num_points_evaluate: 100
+  num_nearest: 10
+  shrink: 0.7
+  kdtree_leafs: 10
 
 # Frame names
 frames:

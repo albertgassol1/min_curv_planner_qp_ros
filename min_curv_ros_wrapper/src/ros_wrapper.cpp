@@ -17,7 +17,7 @@ void RosWrapper::initialize() {
     nh_.param<std::string>("topics/right_boundary", topics_.right_boundary, "/optimized/right_boundary");
 
     // Optimizer parameters
-    int num_control_points, max_num_iterations;
+    int num_control_points, max_num_iterations, num_points_evaluate, num_nearest, kd_tree_leafs;
     std::unique_ptr<spline::optimization::MinCurvatureParams> params = std::make_unique<spline::optimization::MinCurvatureParams>();
     nh_.param<bool>("optimizer/verbose", params->verbose, false);
     nh_.param<bool>("optimizer/constant_system_matrix", params->constant_system_matrix, false);
@@ -26,8 +26,15 @@ void RosWrapper::initialize() {
     nh_.param<bool>("optimizer/warm_start", params->warm_start, true);
     nh_.param<double>("optimizer/weight", optimizer_params_.weight, 0.5);
     nh_.param<double>("optimizer/last_point_shrink", optimizer_params_.last_point_shrink, 0.5);
+    nh_.param<int>("optimizer/num_points_evaluate", num_points_evaluate, 100);
+    nh_.param<int>("optimizer/num_nearest", num_nearest, 3);
+    nh_.param<double>("optimizer/shrink", params->shrink, 0.3);
+    nh_.param<int>("optimizer/kd_tree_leafs", kd_tree_leafs, 10);
+    params->num_points_evaluate = static_cast<std::size_t>(num_points_evaluate);
+    params->num_nearest = static_cast<std::size_t>(num_nearest);
     params->num_control_points = static_cast<std::size_t>(num_control_points);
     params->max_num_iterations = static_cast<std::size_t>(max_num_iterations);
+    params->kdtree_leafs = static_cast<std::size_t>(kd_tree_leafs);
 
     // Frames
     nh_.param<std::string>("frames/robot", frames_.robot, "base_link");

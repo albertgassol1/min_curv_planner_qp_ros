@@ -162,16 +162,81 @@ void MinCurvatureOptimizer::computeHessianAndLinear() {
     H_ = (tmp.adjoint() + tmp) / 2;
 }
 
-// TODO: Implement a function that computes the distance using the normal vectors
 const Eigen::MatrixXd MinCurvatureOptimizer::getBoundaryDistance() const {
     const std::size_t num_control_points = ref_spline_->size();
+    const std::size_t num_points_evaluate = params_->num_points_evaluate;
+
     Eigen::MatrixXd distance(num_control_points, 2);
+
+    // Precompute left and right spline points
+    std::vector<Eigen::Vector2d> left_points(num_points_evaluate);
+    std::vector<Eigen::Vector2d> right_points(num_points_evaluate);
+    
+    for (std::size_t i = 0; i < num_points_evaluate; ++i) {
+        const double u = static_cast<double>(i) / (num_points_evaluate - 1);
+        left_points[i] = left_spline_->evaluateSpline(u, 0);
+        right_points[i] = right_spline_->evaluateSpline(u, 0);
+    }
+
+    // Build k-d trees for left and right points
+    KDTreeAdapter left_cloud{left_points};
+    KDTreeAdapter right_cloud{right_points};
+
+    using KDTree = nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDTreeAdapter>, KDTreeAdapter, 2>;
+    KDTree left_tree(2, left_cloud, nanoflann::KDTreeSingleIndexAdaptorParams(params_->kdtree_leafs));
+    KDTree right_tree(2, right_cloud, nanoflann::KDTreeSingleIndexAdaptorParams(params_->kdtree_leafs));
+
+    left_tree.buildIndex();
+    right_tree.buildIndex();
+
+    // Query the nearest neighbors from each control point
+    std::vector<unsigned int> nearest_indices(params_->num_nearest);
+    std::vector<double> nearest_distances_sq(params_->num_nearest);
+
     for (std::size_t i = 0; i < num_control_points; ++i) {
-        const auto ref_point = ref_spline_->evaluateSpline(static_cast<double>(i) / (num_control_points - 1), 0);
-        const auto left_point = left_spline_->evaluateSpline(static_cast<double>(i) / (num_control_points - 1), 0);
-        const auto right_point = right_spline_->evaluateSpline(static_cast<double>(i) / (num_control_points - 1), 0);
-        distance(i, 0) = (ref_point - left_point).norm();
-        distance(i, 1) = (ref_point - right_point).norm();
+        const auto& control_point = ref_spline_->getControlPoints()[i];
+        const auto& normal_vector = normal_vectors_.row(i);
+        
+        // Precompute line coefficients and normalize them
+        const double a_line = -normal_vector(1);
+        const double b_line = normal_vector(0);
+        const double norm_factor = std::sqrt(a_line * a_line + b_line * b_line);
+        const double c_line = -a_line * control_point.x() - b_line * control_point.y();
+
+        // Query the 3 nearest left points
+        const double query_point[2] = { control_point.x(), control_point.y() };
+        left_tree.knnSearch(&query_point[0], params_->num_nearest, nearest_indices.data(), nearest_distances_sq.data());
+
+        // Compute distances to the 3 nearest left points
+        double min_plane2point_dist_left = std::numeric_limits<double>::max();
+        double min_distance_left = std::numeric_limits<double>::max();
+        for (std::size_t j = 0; j < params_->num_nearest; ++j) {
+            const auto& nearest_left_point = left_points[nearest_indices[j]];
+            double plane2point_distance_left = std::abs(a_line * nearest_left_point.x() + b_line * nearest_left_point.y() + c_line) / norm_factor;
+            if (plane2point_distance_left < min_plane2point_dist_left) {
+                min_plane2point_dist_left = plane2point_distance_left;
+                min_distance_left = (nearest_left_point - control_point).norm();
+            }
+        }
+
+        // Query the 3 nearest right points
+        right_tree.knnSearch(&query_point[0], params_->num_nearest, nearest_indices.data(), nearest_distances_sq.data());
+
+        // Compute distances to the 3 nearest right points
+        double min_plane2point_dist_right = std::numeric_limits<double>::max();
+        double min_distance_right = std::numeric_limits<double>::max();
+        for (std::size_t j = 0; j < params_->num_nearest; ++j) {
+            const auto& nearest_right_point = right_points[nearest_indices[j]];
+            double plane2point_distance_right = std::abs(a_line * nearest_right_point.x() + b_line * nearest_right_point.y() + c_line) / norm_factor;
+            if (plane2point_distance_right < min_plane2point_dist_right) {
+                min_plane2point_dist_right = plane2point_distance_right;
+                min_distance_right = (nearest_right_point - control_point).norm();
+            }
+        }
+
+        // Set the minimum distances for the current control point
+        distance(i, 0) = std::max(0.0, min_distance_left - params_->shrink);
+        distance(i, 1) = std::max(0.0, min_distance_right - params_->shrink);
     }
     return distance;
 }
